@@ -35,7 +35,12 @@ while True:
     print " Local Location: %s" % vehicle.location.local_frame
     print " Attitude: %s" % vehicle.attitude
     print " Velocity: %s" % vehicle.velocity
-    print " GPS: %s" % vehicle.gps_0
+    gpsInf = vehicle.gps_0
+    print " GPS:"
+    print " eph: %s" % gpsInf.eph
+    print " epv: %s" % gpsInf.epv
+    print " fix_type: %s" % gpsInf.fix_type
+    print " satellites_visible : %s" % gpsInf.satellites_visible
     print " Gimbal status: %s" % vehicle.gimbal
     print " Battery: %s" % vehicle.battery
     print " EKF OK?: %s" % vehicle.ekf_ok
