@@ -8,20 +8,27 @@ from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 import StringIO
 import time
 import sys
+from SocketServer import ThreadingMixIn
+import threading
 from threading import Thread
 capture = None
 framerate = 24
 
 global capture
 capture = cv2.VideoCapture(0)
-capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, 320);
-capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, 240);
+capture.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, 640);
+capture.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, 360);
 capture.set(cv2.cv.CV_CAP_PROP_SATURATION,0.2);
 global img
 global server
+armingInProgress = False
+
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    """Handle requests in a separate thread."""
+
 
 def webserver_thread(arg):
-    server = HTTPServer(('',8080),CamHandler)
+    server = ThreadedHTTPServer(('',8080),CamHandler)
     print "server started"
     server.serve_forever()
 
@@ -35,7 +42,14 @@ def handler(signum, frame):
         try:
             thread._Thread__stop()
         except:
-            print " could not be terminated"
+            print "Thread could not be terminated"
+
+    for thr in threading.enumerate():
+        while thr.isAlive():
+            try:
+                thr._Thread__stop()
+            except:
+                print "Additional thread could not be terminated"
 
     server.socket.close()
     print("Completed, exiting")
@@ -44,14 +58,64 @@ def handler(signum, frame):
 
 class CamHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        print "REQUEST GOT:"
-        print self.path
-
-        if self.path == '/status.html' or  self.path == '/status.html/':
+        if self.path == '/get/latlon':
             self.send_response(200)
             self.send_header('Content-type','text/html')
+            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            self.wfile.write('<html><head></head><body><h1>')
+            self.wfile.write('{')
+            loc = vehicle.location.global_frame
+            self.wfile.write(loc.lat)
+            self.wfile.write(', ')
+            self.wfile.write(loc.lon)
+            self.wfile.write('}')
+            return
+        elif self.path == '/action/arm':
+            self.send_response(200)
+            self.send_header('Content-type','text/html')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            # #Check that vehicle is armable
+            # while not vehicle.is_armable:
+            #     print " Waiting for vehicle to initialise..."
+            #     print " GPS eph (HDOP): %s" % vehicle.gps_0.eph
+            #     time.sleep(1)
+            #     # If required, you can provide additional information about initialisation
+            #     # using `vehicle.gps_0.fix_type` and `vehicle.mode.name`.
+
+            global armingInProgress
+            armingInProgress = True
+            print "\nSet Vehicle.armed=True (currently: %s)" % vehicle.armed
+            vehicle.armed = True
+            while not vehicle.armed:
+                print " Waiting for arming..."
+                time.sleep(1)
+            print " Vehicle is armed: %s" % vehicle.armed
+            armingInProgress = False
+            return
+
+        elif self.path == '/action/disarm':
+            self.send_response(200)
+            self.send_header('Content-type','text/html')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            print "\nSet Vehicle.armed=False (currently: %s)" % vehicle.armed
+            vehicle.armed = False
+            global armingInProgress
+            armingInProgress = True
+            while vehicle.armed:
+                print " Waiting for disarming..."
+                time.sleep(1)
+            print " Vehicle is armed: %s" % vehicle.armed
+            armingInProgress = False
+            return
+
+        elif self.path == '/status.html' or  self.path == '/status.html/':
+            self.send_response(200)
+            self.send_header('Content-type','text/html')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write('<html><head><meta http-equiv="refresh" content="0.33"></head><body style="transform: scale(0.6);"><h1>')
 
             self.wfile.write("%s" % vehicle.battery)
             self.wfile.write('</br>')
@@ -61,6 +125,11 @@ class CamHandler(BaseHTTPRequestHandler):
             else:
                 self.wfile.write("TX IS OFF!")
 
+            self.wfile.write('</br>')
+            self.wfile.write(" Armed: %s" % vehicle.armed   )
+            global armingInProgress
+            if armingInProgress:
+                self.wfile.write("</br>ARMED STATE CHANGE IN PROGRESS")
             self.wfile.write('</br></h1>')
 
             self.wfile.write(" Ch1: %s" % vehicle.channels['1'])
@@ -118,16 +187,14 @@ class CamHandler(BaseHTTPRequestHandler):
             self.wfile.write(" Airspeed: %s" % vehicle.airspeed    )
             self.wfile.write('</br>')
             self.wfile.write(" Mode: %s" % vehicle.mode.name    )
-            self.wfile.write('</br>')
-            self.wfile.write(" Armed: %s" % vehicle.armed   )
-            self.wfile.write('</br>')
-            self.wfile.write('</br>')
             self.wfile.write('</body></html>')
+            return
 
         elif self.path.endswith('.mjpg'):
             print "MJPEG Requested"
             self.send_response(200)
             self.send_header('Content-type','multipart/x-mixed-replace; boundary=--jpgboundary')
+            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             while True:
                 try:
@@ -138,10 +205,10 @@ class CamHandler(BaseHTTPRequestHandler):
                     jpg = Image.fromarray(imgRGB)
                     tmpFile = StringIO.StringIO()
                     jpg.save(tmpFile,'JPEG')
-                    print "Saving image to %s", tmpFile
                     self.wfile.write("--jpgboundary")
                     self.send_header('Content-type','image/jpeg')
                     self.send_header('Content-length',str(tmpFile.len))
+                    self.send_header('Access-Control-Allow-Origin', '*')
                     self.end_headers()
                     jpg.save(self.wfile,'JPEG')
                     time.sleep(1/framerate)
@@ -152,10 +219,9 @@ class CamHandler(BaseHTTPRequestHandler):
             print "HTML Requested"
             self.send_response(200)
             self.send_header('Content-type','text/html')
+            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            self.wfile.write('<html><head></head><body>')
-            self.wfile.write('<img src="/cam.mjpg"/>')
-            self.wfile.write('</body></html>')
+            self.wfile.write('<html><head><title>SecDrone</title><script>function httpGetAsync(theUrl){var xmlHttp=new XMLHttpRequest();xmlHttp.open("GET", theUrl, true);xmlHttp.send(null);}</script></head><body><iframe src="/status.html" frameborder="0"style="overflow:hidden;display:block; position: absolute; TOP:360px; height: 100%; width: 100%"></iframe><img src="/cam.mjpg"/><div id="map" style="width:360px;height:360px;position:absolute;TOP:0px;LEFT:640px"></div><script>var map; var dronelatLng; var marker = null; function initMap(){getLatLon(); var latlng=getLatLngFromString(dronelatLng); map=new google.maps.Map(document.getElementById(\'map\'),{center: latlng, zoom: 19});}function getLatLngFromString(location){var latlang=location.replace(/[({})]/g,\'\'); var latlng=latlang.split(\',\'); var locate=new google.maps.LatLng(parseFloat(latlng[0]), parseFloat(latlng[1])); return locate;}function getLatLon(){var xmlHttp=new XMLHttpRequest({mozSystem: true}); xmlHttp.open( "GET", "/get/latlon", false ); xmlHttp.send( null ); dronelatLng=xmlHttp.responseText;}function placeMarker(){var r=getLatLngFromString(dronelatLng);console.log(r.toString()),null==marker?marker=new google.maps.Marker({position:r,map:map,label:"A"}):marker.setPosition(r)}function updateMap(){getLatLon(),placeMarker()}setInterval(updateMap,333);</script><script src="https://maps.googleapis.com/maps/api/js?key=KEYGOESHERE&callback=initMap" async defer></script><button onclick="httpGetAsync(\'/action/arm\')" style="width: 150px;height: 100px;position: absolute; LEFT:990px;">Arm</button></br><button onclick="httpGetAsync(\'/action/disarm\')" style="width: 150px;height: 100px;position: absolute; LEFT:990px; TOP:120px;">Disarm</button></br></body></html>')
             return
 
 
@@ -215,14 +281,14 @@ while not vehicle.mode.name=='LOITER':  #Wait until mode has changed
 print "\nRead and write parameters"
 print " Read vehicle param 'GPS_HDOP_GOOD': %s" % vehicle.parameters['GPS_HDOP_GOOD'] #NOTE: ORIGINAL IS 230.0
 
-print " Write vehicle param 'GPS_HDOP_GOOD' : 300.0"
-vehicle.parameters['GPS_HDOP_GOOD']=300.0
+print " Write vehicle param 'GPS_HDOP_GOOD' : 230.0"
+vehicle.parameters['GPS_HDOP_GOOD']=230.0
 print " Read new value of param 'GPS_HDOP_GOOD': %s" % vehicle.parameters['GPS_HDOP_GOOD']
 
 print " Read vehicle param 'ARMING_CHECK': %s" % vehicle.parameters['ARMING_CHECK'] #NOTE: ORIGINAL IS
 
-print " Write vehicle param 'ARMING_CHECK' : 0"
-vehicle.parameters['ARMING_CHECK']=0
+print " Write vehicle param 'ARMING_CHECK' : 1"
+vehicle.parameters['ARMING_CHECK']=1
 print " Read new value of param 'ARMING_CHECK': %s" % vehicle.parameters['ARMING_CHECK']
 
 
