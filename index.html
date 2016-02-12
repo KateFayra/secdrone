@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>SecDrone</title>
+    <script type="text/javascript">
+        function httpGetAsync(theUrl) {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open("GET", theUrl, true);
+            xmlHttp.send(null);
+        }
+    </script>
+</head>
+
+<body>
+<div id="map" style="width:360px;height:360px"></div>
+<img src="/cam.mjpg" style="position:absolute;TOP:0px;LEFT:370px"/>
+</br>
+<div id="status">STATUS LOADING</div>
+<script type="text/javascript">
+        var map;
+        var dronelatLng;
+        var marker = null;
+        var markers = [];
+        var lastMarkerRetval = "";
+
+
+        function initMap() {
+            getLatLon();
+            var latlng = getLatLngFromString(dronelatLng);
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: latlng,
+                zoom: 19
+            });
+            map.addListener('click', function(e) {
+                placeMarkerAndPanTo(e.latLng, map);
+            });
+
+        }
+
+        function placeMarkerAndPanTo(latLng, map) {
+            console.log(latLng.toString());
+            var xmlHttp = new XMLHttpRequest({
+                mozSystem: true
+            });
+
+            xmlHttp.open("GET", "/set/destqueue/" + latLng.toString(), false);
+            xmlHttp.send(null);
+        }
+
+        function getLatLngFromString(location) {
+            var latlang = location.replace(/[({})]/g, '');
+            var latlng = latlang.split(',');
+            var locate = new google.maps.LatLng(parseFloat(latlng[0]), parseFloat(latlng[1]));
+            return locate;
+        }
+
+        function getLatLon() {
+            var xmlHttp = new XMLHttpRequest({
+                mozSystem: true
+            });
+            xmlHttp.open("GET", "/get/latlon", false);
+            xmlHttp.send(null);
+            dronelatLng = xmlHttp.responseText;
+        }
+
+        function placeMarker() {
+            var latlng = getLatLngFromString(dronelatLng);
+            if(marker == null){
+                marker = new google.maps.Marker({
+                position: latlng,
+                map: map,
+                icon: 'green_marker.png'
+                });
+            } else {
+                marker.setPosition(latlng);
+            };
+        }
+
+        function placeDestMarkers() {
+            var xmlHttp = new XMLHttpRequest({
+                mozSystem: true
+            });
+            xmlHttp.open("GET", "/get/destqueue", false);
+            xmlHttp.send(null);
+            var destList = xmlHttp.responseText;
+            if(destList != lastMarkerRetval){
+                lastMarkerRetval = destList;
+                destList = destList.replace(/[({})]/g, '');
+                destList = destList.split(',');
+                deleteMarkers();
+                var j = 0;
+                for (var i = 0; i < destList.length; i+=2){
+                    addMarker(new google.maps.LatLng(parseFloat(destList[i]), parseFloat(destList[i+1])), j++);
+                }
+            }
+        }
+
+        // Adds a marker to the map and push to the array.
+        function addMarker(location, j) {
+          var lab = "";
+          if(j < 10){
+             lab = j.toString();
+          } else {
+             lab = String.fromCharCode(j+87);
+          }
+
+          var marker = new google.maps.Marker({
+            position: location,
+            map: map,
+            label: lab
+          });
+          markers.push(marker);
+        }
+
+        // Sets the map on all markers in the array.
+        function setMapOnAll(map) {
+          for (var i = 0; i < markers.length; i++) {
+            markers[i].setMap(map);
+          }
+        }
+
+        // Removes the markers from the map, but keeps them in the array.
+        function clearMarkers() {
+          setMapOnAll(null);
+        }
+
+        // Shows any markers currently in the array.
+        function showMarkers() {
+          setMapOnAll(map);
+        }
+
+        // Deletes all markers in the array by removing references to them.
+        function deleteMarkers() {
+          clearMarkers();
+          markers = [];
+        }
+
+        function updateStatus(){
+            var xmlHttp = new XMLHttpRequest({
+                mozSystem: true
+            });
+
+            xmlHttp.open("GET", "/status.html", false);
+            xmlHttp.send(null);
+            var res = xmlHttp.responseText;
+            document.getElementById("status").innerHTML = res;
+        }
+
+        function updateMap() {
+            getLatLon(), placeMarker(), placeDestMarkers(), updateStatus()
+        }
+        setInterval(updateMap, 500);
+    </script>
+<script src="https://maps.googleapis.com/maps/api/js?key=KEYGOESHERE&callback=initMap&sensor=false" async defer></script>
+<button onclick="httpGetAsync('/action/arm')" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:0px;"><h1>Arm</h1></button>
+</br>
+<button onclick="httpGetAsync('/action/disarm')" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:120px;"><h1>Disarm</h1></button>
+</br>
+<button onclick="httpGetAsync('/clear/destqueue')" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:240px;"><h1>Clear Waypoints</h1></button>
+</br>
+<button onclick="httpGetAsync('/action/guided')" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:360px;"><h1>Engage Guided</h1></button>
+</br>
+<button onclick="httpGetAsync('/action/loiter')" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:480px;"><h1>Engage Loiter</h1></button>
+</br>
+</body>
+
+</html>
+
+

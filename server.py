@@ -1,4 +1,4 @@
-from dronekit import connect, VehicleMode
+from dronekit import connect, VehicleMode, LocationGlobalRelative
 import signal
 import time
 import cv2
@@ -13,6 +13,7 @@ import threading
 from threading import Thread
 capture = None
 framerate = 24
+import Queue
 
 global capture
 capture = cv2.VideoCapture(0)
@@ -22,15 +23,18 @@ capture.set(cv2.cv.CV_CAP_PROP_SATURATION,0.2);
 global img
 global server
 armingInProgress = False
+modeChangeInProgress = False
+destQueue = Queue.Queue()
+
+class destNode:
+    def __init__(self, lat, lng, alt):
+        self.lat = lat
+        self.lng = lng
+        self.alt = alt
+
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle requests in a separate thread."""
-
-
-def webserver_thread(arg):
-    server = ThreadedHTTPServer(('',8080),CamHandler)
-    print "server started"
-    server.serve_forever()
 
 
 def handler(signum, frame):
@@ -58,18 +62,73 @@ def handler(signum, frame):
 
 class CamHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path == '/get/latlon':
+        if self.path.startswith('/set/destqueue'):
+            latLngString = self.path.split('/')[-1]
+            print "\n\nlatLngString:"
+            print latLngString
+            print "\n\n"
+
+            latLngString = latLngString.replace("%20", " ")
+            print latLngString
+            latLngTuple = tuple(float(x) for x in latLngString.strip('()').split(','))
+            lat = latLngTuple[0]
+            lng = latLngTuple[1]
+            alt = 4
+            node = destNode(lat, lng, alt)
+            global destQueue
+            destQueue.put(node)
+
+
             self.send_response(200)
             self.send_header('Content-type','text/html')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            self.wfile.write('{')
+            self.wfile.write('True')
+            return
+
+        elif self.path == '/get/destqueue':
+            self.send_response(200)
+            self.send_header('Content-type','text/html')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+
+            self.wfile.write('(')
+            first = True
+            for node in list(destQueue.queue):
+                if not first:
+                    self.wfile.write(', ')
+
+                self.wfile.write(node.lat)
+                self.wfile.write(', ')
+                self.wfile.write(node.lng)
+                first = False
+
+            self.wfile.write(')')
+            return
+
+        elif self.path == '/clear/destqueue':
+            with destQueue.mutex:
+                destQueue.queue.clear()
+
+            self.send_response(200)
+            self.send_header('Content-type','text/html')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write('True')
+
+        elif self.path == '/get/latlon':
+            self.send_response(200)
+            self.send_header('Content-type','text/html')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write('(')
             loc = vehicle.location.global_frame
             self.wfile.write(loc.lat)
             self.wfile.write(', ')
             self.wfile.write(loc.lon)
-            self.wfile.write('}')
+            self.wfile.write(')')
             return
+
         elif self.path == '/action/arm':
             self.send_response(200)
             self.send_header('Content-type','text/html')
@@ -110,12 +169,50 @@ class CamHandler(BaseHTTPRequestHandler):
             armingInProgress = False
             return
 
-        elif self.path == '/status.html' or  self.path == '/status.html/':
+        elif self.path == '/action/loiter':
             self.send_response(200)
             self.send_header('Content-type','text/html')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            self.wfile.write('<html><head><meta http-equiv="refresh" content="0.33"></head><body style="transform: scale(0.6);"><h1>')
+            print "\nSet Vehicle.mode=LOITER (currently: %s)" % vehicle.mode.name
+            global modeChangeInProgress
+            modeChangeInProgress = True
+            vehicle.mode = VehicleMode("LOITER")
+            while not vehicle.mode.name=='LOITER':  #Wait until mode has changed
+                print " Waiting for mode change ..."
+                time.sleep(1)
+
+            modeChangeInProgress = False
+            return
+
+        elif self.path == '/action/guided':
+            self.send_response(200)
+            self.send_header('Content-type','text/html')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            if destQueue.empty():
+                return
+
+            print "\nSet Vehicle.mode=GUIDED (currently: %s)" % vehicle.mode.name
+            global modeChangeInProgress
+            modeChangeInProgress = True
+            vehicle.mode = VehicleMode("GUIDED")
+            while not vehicle.mode.name=='GUIDED':  #Wait until mode has changed
+                print " Waiting for mode change ..."
+                time.sleep(1)
+
+            modeChangeInProgress = False
+            node = destQueue.get()
+            location = LocationGlobalRelative(node.lat, node.lng, 4)
+            vehicle.simple_goto(location, groundspeed=0.5)
+            return
+
+        elif self.path == '/status.html':
+            self.send_response(200)
+            self.send_header('Content-type','text/html')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write('<h1>')
 
             self.wfile.write("%s" % vehicle.battery)
             self.wfile.write('</br>')
@@ -124,12 +221,23 @@ class CamHandler(BaseHTTPRequestHandler):
                 self.wfile.write("TX IS ON!")
             else:
                 self.wfile.write("TX IS OFF!")
+                if vehicle.mode.name != "LAND" and vehicle.mode.name != "LOITER":
+                    print "\nSet Vehicle.mode=LAND (currently: %s)" % vehicle.mode.name
+                    vehicle.mode = VehicleMode("LAND")
+
 
             self.wfile.write('</br>')
             self.wfile.write(" Armed: %s" % vehicle.armed   )
+            self.wfile.write('</br>')
+            self.wfile.write(" Mode: %s" % vehicle.mode.name    )
             global armingInProgress
             if armingInProgress:
                 self.wfile.write("</br>ARMED STATE CHANGE IN PROGRESS")
+
+            global modeChangeInProgress
+            if modeChangeInProgress:
+                self.wfile.write("</br>MODE CHANGE IN PROGRESS")
+
             self.wfile.write('</br></h1>')
 
             self.wfile.write(" Ch1: %s" % vehicle.channels['1'])
@@ -185,12 +293,9 @@ class CamHandler(BaseHTTPRequestHandler):
             self.wfile.write(" Groundspeed: %s" % vehicle.groundspeed    )
             self.wfile.write('</br>')
             self.wfile.write(" Airspeed: %s" % vehicle.airspeed    )
-            self.wfile.write('</br>')
-            self.wfile.write(" Mode: %s" % vehicle.mode.name    )
-            self.wfile.write('</body></html>')
             return
 
-        elif self.path.endswith('.mjpg'):
+        elif self.path == '/cam.mjpg':
             print "MJPEG Requested"
             self.send_response(200)
             self.send_header('Content-type','multipart/x-mixed-replace; boundary=--jpgboundary')
@@ -215,13 +320,38 @@ class CamHandler(BaseHTTPRequestHandler):
                 except KeyboardInterrupt:
                     break
             return
-        elif self.path == '/index.html' or self.path == '/' or self.path == '/index.html/':
-            print "HTML Requested"
+
+        elif self.path == '/index.html' or self.path == '/':
             self.send_response(200)
             self.send_header('Content-type','text/html')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            self.wfile.write('<html><head><title>SecDrone</title><script>function httpGetAsync(theUrl){var xmlHttp=new XMLHttpRequest();xmlHttp.open("GET", theUrl, true);xmlHttp.send(null);}</script></head><body><iframe src="/status.html" frameborder="0"style="overflow:hidden;display:block; position: absolute; TOP:360px; height: 100%; width: 100%"></iframe><img src="/cam.mjpg"/><div id="map" style="width:360px;height:360px;position:absolute;TOP:0px;LEFT:640px"></div><script>var map; var dronelatLng; var marker = null; function initMap(){getLatLon(); var latlng=getLatLngFromString(dronelatLng); map=new google.maps.Map(document.getElementById(\'map\'),{center: latlng, zoom: 19});}function getLatLngFromString(location){var latlang=location.replace(/[({})]/g,\'\'); var latlng=latlang.split(\',\'); var locate=new google.maps.LatLng(parseFloat(latlng[0]), parseFloat(latlng[1])); return locate;}function getLatLon(){var xmlHttp=new XMLHttpRequest({mozSystem: true}); xmlHttp.open( "GET", "/get/latlon", false ); xmlHttp.send( null ); dronelatLng=xmlHttp.responseText;}function placeMarker(){var r=getLatLngFromString(dronelatLng);console.log(r.toString()),null==marker?marker=new google.maps.Marker({position:r,map:map,label:"A"}):marker.setPosition(r)}function updateMap(){getLatLon(),placeMarker()}setInterval(updateMap,333);</script><script src="https://maps.googleapis.com/maps/api/js?key=KEYGOESHERE&callback=initMap" async defer></script><button onclick="httpGetAsync(\'/action/arm\')" style="width: 150px;height: 100px;position: absolute; LEFT:990px;">Arm</button></br><button onclick="httpGetAsync(\'/action/disarm\')" style="width: 150px;height: 100px;position: absolute; LEFT:990px; TOP:120px;">Disarm</button></br></body></html>')
+            with open('index.html', 'r') as myfile:
+                data=myfile.read()
+
+            self.wfile.write(data)
+            return
+
+        elif self.path == '/map.html':
+            self.send_response(200)
+            self.send_header('Content-type','text/html')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            with open('map.html', 'r') as myfile:
+                data=myfile.read()
+
+            self.wfile.write(data)
+            return
+
+        elif self.path == '/green_marker.png':
+            self.send_response(200)
+            self.send_header('Content-type','image/png')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            with open('green_marker.png', 'r') as myfile:
+                data=myfile.read()
+
+            self.wfile.write(data)
             return
 
 
@@ -288,88 +418,10 @@ print " Read new value of param 'GPS_HDOP_GOOD': %s" % vehicle.parameters['GPS_H
 print " Read vehicle param 'ARMING_CHECK': %s" % vehicle.parameters['ARMING_CHECK'] #NOTE: ORIGINAL IS
 
 print " Write vehicle param 'ARMING_CHECK' : 1"
-vehicle.parameters['ARMING_CHECK']=1
+vehicle.parameters['ARMING_CHECK']=0
 print " Read new value of param 'ARMING_CHECK': %s" % vehicle.parameters['ARMING_CHECK']
 
 
-
-# Check that vehicle is armable
-# while not vehicle.is_armable:
-#     print " Waiting for vehicle to initialise..."
-#     print " GPS eph (HDOP): %s" % vehicle.gps_0.eph
-#     time.sleep(1)
-#     # If required, you can provide additional information about initialisation
-#     # using `vehicle.gps_0.fix_type` and `vehicle.mode.name`.
-#
-# print "\nSet Vehicle.armed=True (currently: %s)" % vehicle.armed
-# vehicle.armed = True
-# while not vehicle.armed:
-#     print " Waiting for arming..."
-#     time.sleep(1)
-# print " Vehicle is armed: %s" % vehicle.armed
-
-# # Override the channel for roll and yaw
-# vehicle.channel_override = { "3" : 900 }
-# vehicle.flush()
-#
-# #print current override values
-# print "Current overrides are:", vehicle.channel_override
-#
-# # Print channel values (values if overrides removed)
-# print "Channel default values:", vehicle.channel_readback
-#
-# # Cancel override by setting channels to 0
-# vehicle.channel_override = { "3" : 0}
-# vehicle.flush()
-
-
-thread = Thread(target = webserver_thread, args = (10, ))
-thread.start()
-
-while True:
-    # Print channel values (values if overrides removed)
-    # print "\n\n\nChannel default values:"
-    # # Get all channel values from RC transmitter
-    # print "Channel values from RC Tx:", vehicle.channels
-    #
-    # # Access channels individually
-    # print "Read channels individually:"
-    # print " Ch1: %s" % vehicle.channels['1']
-    # print " Ch2: %s" % vehicle.channels['2']
-    # print " Ch3: %s" % vehicle.channels['3']
-    # print " Ch4: %s" % vehicle.channels['4']
-    #
-    # if vehicle.channels['3'] > 900:
-    #     print "TX IS ON!"
-    # else:
-    #     print "TX IS OFF!"
-    #
-    # print "\n\n\nGet all vehicle attribute values:"
-    # print " Global Location: %s" % vehicle.location.global_frame
-    # print " Global Location (relative altitude): %s" % vehicle.location.global_relative_frame
-    # print " Local Location: %s" % vehicle.location.local_frame
-    # print " Attitude: %s" % vehicle.attitude
-    # print " Velocity: %s" % vehicle.velocity
-    # gpsInf = vehicle.gps_0
-    # print " GPS:"
-    # print " eph: %s" % gpsInf.eph
-    # print " epv: %s" % gpsInf.epv
-    # print " fix_type: %s" % gpsInf.fix_type
-    # print " satellites_visible : %s" % gpsInf.satellites_visible
-    # print " Gimbal status: %s" % vehicle.gimbal
-    # print " Battery: %s" % vehicle.battery
-    # print " EKF OK?: %s" % vehicle.ekf_ok
-    # print " Last Heartbeat: %s" % vehicle.last_heartbeat
-    # print " Rangefinder: %s" % vehicle.rangefinder
-    # print " Rangefinder distance: %s" % vehicle.rangefinder.distance
-    # print " Rangefinder voltage: %s" % vehicle.rangefinder.voltage
-    # print " Heading: %s" % vehicle.heading
-    # print " Is Armable?: %s" % vehicle.is_armable
-    # print " System status: %s" % vehicle.system_status.state
-    # print " Groundspeed: %s" % vehicle.groundspeed    # settable
-    # print " Airspeed: %s" % vehicle.airspeed    # settable
-    # print " Mode: %s" % vehicle.mode.name    # settable
-    # print " Armed: %s" % vehicle.armed    # settable
-    time.sleep(1)
-# Add and remove and attribute callbacks
-
+server = ThreadedHTTPServer(('',8080),CamHandler)
+print "server started"
+server.serve_forever()
