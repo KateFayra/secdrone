@@ -15,7 +15,8 @@
 <body>
 <div id="map" style="width:360px;height:360px"></div>
 <img src="/cam.mjpg" style="position:absolute;TOP:0px;LEFT:370px"/>
-</br>
+<br />
+<div id="queueconfigurationLink"><h2><a href="/routes.html">Saved Route Configurations</a></h2></div>
 <div id="status">STATUS LOADING</div>
 <script type="text/javascript">
         var map;
@@ -152,19 +153,43 @@
         }
         setInterval(updateMap, 500);
     </script>
-<script src="https://maps.googleapis.com/maps/api/js?key=KEYGOESHERE&callback=initMap&sensor=false" async defer></script>
-<button onclick="httpGetAsync('/action/arm')" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:0px;"><h1>Arm</h1></button>
-</br>
-<button onclick="httpGetAsync('/action/disarm')" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:120px;"><h1>Disarm</h1></button>
-</br>
-<button onclick="httpGetAsync('/clear/destqueue')" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:240px;"><h1>Clear Waypoints</h1></button>
-</br>
-<button onclick="httpGetAsync('/action/guided')" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:360px;"><h1>Engage Guided</h1></button>
-</br>
-<button onclick="httpGetAsync('/action/loiter')" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:480px;"><h1>Engage Loiter</h1></button>
-</br>
+<script src="https://maps.googleapis.com/maps/api/js?key=$GOOGLEMAPSAPIKEYGOESHERE&callback=initMap&sensor=false" async defer></script>
+<button onclick="httpGetAsync('/action/arm')" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:0px;"><h2>Arm</h2></button>
+<br />
+<button onclick="httpGetAsync('/action/disarm')" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:120px;"><h2>Disarm</h2></button>
+<br />
+<button onclick="httpGetAsync('/clear/destqueue')" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:240px;"><h2>Clear Waypoints</h2></button>
+<br />
+<button onclick="httpGetAsync('/action/guided')" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:360px;"><h2>Engage Guided</h2></button>
+<br />
+<button onclick="httpGetAsync('/action/loiter')" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:480px;"><h2>Engage Loiter</h2></button>
+<br />
+<button onclick="httpGetAsync('/set/alt/'.concat(document.getElementById('altitude').value))" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:640px;"><h2>Set Altitude</h2></button>
+<br />
+<form style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:590px;">
+    Altitude (m):<br>
+    <input type="text" name="altitude" id="altitude" value="10">
+</form>
+<button onclick="httpGetAsync('/set/groundspeed/'.concat(document.getElementById('groundspeed').value))" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:800px;"><h2>Set Groundspeed</h2></button>
+<br />
+<form style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:750px;">
+    groundspeed (m/s):<br>
+    <input type="text" name="groundspeed" id="groundspeed" value="0.1">
+</form>
+<button onclick="httpGetAsync('/toggle/circuit/')" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:920px;"><h2>Toggle Circuit</h2></button>
+<form style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:1040px;">
+    Route name:<br>
+    <input type="text" name="routename" id="routename" value="">
+</form>
+<button onclick="httpGetAsync('/set/route/'.concat(document.getElementById('routename').value))" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:1090px;"><h2>Save Route</h2></button>
+<button onclick="httpGetAsync('/toggle/altitudeoverride/')" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:1210px;"><h2>Node Altitude Override</h2></button>
+<form style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:1330px;">
+    Heading (deg):<br>
+    <input type="text" name="heading" id="heading" value="">
+</form>
+<button onclick="httpGetAsync('/set/heading/'.concat(document.getElementById('heading').value))" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:1380px;"><h2>Set Heading</h2></button>
+<button onclick="httpGetAsync('/action/takeoff')" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:1500px;"><h2>Takeoff</h2></button>
+<button onclick="httpGetAsync('/action/rtl')" style="width: 150px;height: 100px;position: absolute; LEFT:1020px; TOP:1620px;"><h2>RTL</h2></button>
 </body>
 
 </html>
-
-

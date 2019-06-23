@@ -1,0 +1,32 @@
+Original count:? not needed
+
+Count after preventing image resize winStride=(8, 8): 2008, but had more errors identifying the tree and the car as a person at the same time. (TODO: rerun this on cropped dataset)
+
+
+Final version, reduced count of initial dataset: 1819
+
+
+Using an initial run with 
+
+(rects, weights) = hog.detectMultiScale(image, winStride=(2, 2),
+		padding=(8, 8), scale=4.2)
+		
+		
+since it is faster, and detects people at far distance better..
+
+If no one is found (it means there is someone at a closer distance, or there is no one in the image)
+
+Attempted values for winstride between (1,1) -- (8,8) (8,8) was too inaccurate for resized images, (1,1) was too slow -- (4,4) was fine for resized images, but was too inaccurate for farther people
+
+Scale values larger than 4.2 did not help increase processing time, on images-far set 4.2 was 4 seconds faster compared to 2.1
+
+
+
+
+RUN WITHOUT FAR CODE (the code before resize at 4.2): only 644 identifications were made
+RUN (Count after preventing image resize with winStride=(8, 8)) ON CROPPED DATASET: 1556 (faster but missed images where person was closer)
+
+RUN (Count after preventing image resize with winStride=(4, 4)) ON CROPPED DATASET: 1994 too slow (but had more errors identifying the tree and the car as a person at the same time.??)
+
+
+TODO: false positive, false negative rates a lot of manual work here
