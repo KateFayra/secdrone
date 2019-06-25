@@ -1,15 +1,17 @@
 '''
-    Modified from the following files:
-    mjpeg.py
-    Author: Igor Maculan - n3wtron@gmail.com
-    A Simple mjpg stream http server
+    Author: Nicholas Lochner - njlochner@gmail.com
+    
+    Contains modified code snippits from the following files:
+    
+    mjpeg.py - Igor Maculan - n3wtron@gmail.com
+        A Simple mjpg stream http server
 
     vehicle_state.py:
-    Demonstrates how to get and set vehicle state and parameter information,
-    and how to observe vehicle attribute (state) changes.
+        Demonstrates how to get and set vehicle state and parameter information,
+        and how to observe vehicle attribute (state) changes.
 
-    Full documentation is provided at http://python.dronekit.io/examples/vehicle_state.html (Link seems to now be dead, repo is below)
-    https://github.com/dronekit/dronekit-python
+        Full documentation is provided at http://python.dronekit.io/examples/vehicle_state.html (Link seems to now be dead, repo is below)
+        https://github.com/dronekit/dronekit-python
     
     Both files mentioned above are licensed under the Apache 2 license, which is compatable with this project's license which is GNU GPLv3.
     For more information see: https://www.apache.org/licenses/GPL-compatibility.html
