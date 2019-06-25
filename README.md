@@ -6,7 +6,7 @@ You can view my thesis paper here: http://njlochner.com/thesis.html
 
 My thesis paper is also available on this GitHub repository: https://github.com/njlochner/secdrone/blob/master/Autonomous%20Surveillance%20and%20Security%20Drone.pdf
 
-[![Autonomous Surveillance and Security Drone](http://njlochner.com/drone.png = 250x250)](http://njlochner.com/thesis.html)
+[![Autonomous Surveillance and Security Drone](http://njlochner.com/drone.png){ width=50% }](http://njlochner.com/thesis.html)
 
 ### Overview
 
