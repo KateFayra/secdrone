@@ -16,7 +16,9 @@ The drone has a camera, and sends images to a computer connected to the drone’
 
 ### Thesis Abstract
 
-Autonomous surveillance drones, also known as unmanned aerialvehicles, would improve security for individuals, businesses, and government agencies. Drones present an affordable, effective method toautomatically surveil a large open area to identify unauthorized personnel at close range. This paper fully describes the design and implementation of an autonomous unmanned aerial vehicle which can patrol an area and identify humans. Potential future improvements of my aircraftand some alternative uses of unmanned aerial surveillance, other thansurveilling an area of private property, are also discussed.
+Autonomous surveillance drones, also known as unmanned aerialvehicles, would improve security for individuals, businesses, and government agencies. Drones present an affordable, effective method toautomatically surveil a large open area to identify unauthorized personnel at close range.
+
+This paper fully describes the design and implementation of an autonomous unmanned aerial vehicle which can patrol an area and identify humans. Potential future improvements of my aircraftand some alternative uses of unmanned aerial surveillance, other thansurveilling an area of private property, are also discussed.
 
 ### Licencing/Copyright Info
 
