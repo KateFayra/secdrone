@@ -6,6 +6,8 @@ You can view my thesis paper here: http://njlochner.com/thesis.html
 
 My thesis paper is also available on this GitHub repository: https://github.com/njlochner/secdrone/blob/master/Autonomous%20Surveillance%20and%20Security%20Drone.pdf
 
+[![Autonomous Surveillance and Security Drone](http://njlochner.com/drone.png)](http://njlochner.com/thesis.html)
+
 ### Overview
 
 The drone includes a Raspberry Pi computer which controls it. The computer runs an on-board web server and a secure WiFi access-point running a controller web-application built with Python.
