@@ -2,9 +2,9 @@
 
 For my senior thesis for my degree of Bachelor of Science (B.S.) in Computer Science from the University of Illinois at Urbana-Champaign, I designed and implemented an autonomous unmanned aerial vehicle which can patrol an area and identify humans.
 
-You can view my thesis here: http://njlochner.com/thesis.html
+You can view my thesis paper here: http://njlochner.com/thesis.html
 
-My thesis is also available on this github repository: https://github.com/njlochner/secdrone/blob/master/thesis.pdf
+My thesis paper is also available on this GitHub repository: https://github.com/njlochner/secdrone/blob/master/Autonomous%20Surveillance%20and%20Security%20Drone.pdf
 
 ### Overview
 
