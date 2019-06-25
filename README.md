@@ -1,5 +1,4 @@
-# secdrone
-Autonomous surveillance &amp; security drone
+# Autonomous Surveillance and Security Drone
 
 For my senior thesis for my degree of Bachelor of Science (B.S.) in Computer Science from the University of Illinois at Urbana-Champaign, I designed and implemented an autonomous unmanned aerial vehicle which can patrol an area and identify humans.
 
