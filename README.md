@@ -14,6 +14,10 @@ The web application uses the Google Maps API and allows for the drone to be sent
 
 The drone has a camera, and sends images to a computer connected to the drone’s WiFi network. This computer continuously processes images with OpenCV in Python to detect humans. Humans are identified using a Histogram of Oriented Gradients method conjunction with a Linear Support Vector Machine. When a person is detected, the machine sends an email to notify the user.
 
+### Thesis Abstract
+
+Autonomous surveillance drones, also known as unmanned aerialvehicles, would improve security for individuals, businesses, and government agencies. Drones present an affordable, effective method toautomatically surveil a large open area to identify unauthorized personnel at close range. This paper fully describes the design and implementation of an autonomous unmanned aerial vehicle which can patrol an area and identify humans. Potential future improvements of my aircraftand some alternative uses of unmanned aerial surveillance, other thansurveilling an area of private property, are also discussed.
+
 ### Licencing info
 
 All code in this repository is licensed under the GNU General Public License Version 3: https://www.gnu.org/licenses/gpl-3.0.en.html
