@@ -18,10 +18,30 @@ The drone has a camera, and sends images to a computer connected to the drone’
 
 Autonomous surveillance drones, also known as unmanned aerialvehicles, would improve security for individuals, businesses, and government agencies. Drones present an affordable, effective method toautomatically surveil a large open area to identify unauthorized personnel at close range. This paper fully describes the design and implementation of an autonomous unmanned aerial vehicle which can patrol an area and identify humans. Potential future improvements of my aircraftand some alternative uses of unmanned aerial surveillance, other thansurveilling an area of private property, are also discussed.
 
-### Licencing info
+### Licencing/Copyright Info
+
+#### Source Code
 
 All code in this repository is licensed under the GNU General Public License Version 3: https://www.gnu.org/licenses/gpl-3.0.en.html
 
 server.py contains code snippits which are are licensed under the Apache 2 license, which is compatable with this project's license which is GNU GPLv3. For more information see: https://www.apache.org/licenses/GPL-compatibility.html
 
 detect.py and detectbest.py contain code snippits from http://pyimagesearch.com which is licensed under the MIT license, thus compatable with the GNU GPLv3. For more information see: https://en.m.wikipedia.org/wiki/MIT_License
+
+#### Thesis Paper
+
+All original materials created by the author of this paper, except for images which depictcopyrighted and/or trademarked third-party software or materials, are Copyrightc ©2016 Nicholas Lochner. All Rights Reserved.
+
+Redistribution of any source code part of the thesis paper licensed under the GNU GPL v3 as defined above is subject to the terms and conditions of the GNU General Public License Version 3. A copy can be obtained here: http://www.gnu.org/licenses/gpl-3.0.en.html
+
+Redistribution of any (non-source code) part of this document copyrighted by the author of this paper is permitted provided that all of the following conditions are met:
+
+•The name of the author may not be used to endorse or promote products derivedfrom this paper without specific prior written permission of the author.
+
+•The purpose of redistribution falls under Section 107 of the United States CopyrightAct of 1976.
+
+•Proper attribution is given.
+
+•The redistribution is unmodified, unless it is an image or a section of text of a paragraph or less. Redistribution not meeting the above conditions is prohibited without specific priorwritten permission of the author.
+
+See the last few pages of the paper for full copyright and redistribution details.
