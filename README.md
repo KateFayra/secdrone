@@ -32,15 +32,15 @@ detect.py and detectbest.py contain code snippits from http://pyimagesearch.com 
 
 #### Thesis Paper
 
-All original materials created by the author of this paper, except for images which depictcopyrighted and/or trademarked third-party software or materials, are Copyright ©2016 Nicholas Lochner. All Rights Reserved.
+All original materials created by the author of this paper are Copyright ©2016 Nicholas Lochner, All Rights Reserved, except for images which depict copyrighted and/or trademarked third-party software or materials which are used under the fair use exception of the US Copyright Act of 1979.
 
-Redistribution of any source code part of the thesis paper licensed under the GNU GPL v3 as defined above is subject to the terms and conditions of the GNU General Public License Version 3. A copy can be obtained here: http://www.gnu.org/licenses/gpl-3.0.en.html
+Redistribution of any source code part contained in the thesis paper is licensed under the GNU GPL v3 and is subject to the terms and conditions of the GNU General Public License Version 3. A copy can be obtained here: http://www.gnu.org/licenses/gpl-3.0.en.html
 
 Redistribution of any (non-source code) part of this document copyrighted by the author of this paper is permitted provided that all of the following conditions are met:
 
 •The name of the author may not be used to endorse or promote products derivedfrom this paper without specific prior written permission of the author.
 
-•The purpose of redistribution falls under Section 107 of the United States CopyrightAct of 1976.
+•The purpose of redistribution falls under Section 107 of the United States Copyright Act of 1976.
 
 •Proper attribution is given.
 
