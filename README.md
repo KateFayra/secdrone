@@ -12,6 +12,10 @@ You can view my thesis here: http://njlochner.com/thesis.html
 
 My thesis is also available on this github repository.
 
-Licencing info: All code in this repository is licensed under the GNU General Public License Version 3: https://www.gnu.org/licenses/gpl-3.0.en.html
+## Licencing info
 
-detect.py and detectbest.py contain code snippits from http://pyimagesearch.com which is licensed under the MIT license, thus compatable with the GNU GPLv3. See: https://en.m.wikipedia.org/wiki/MIT_License
+All code in this repository is licensed under the GNU General Public License Version 3: https://www.gnu.org/licenses/gpl-3.0.en.html
+
+server.py contains code snippits which are are licensed under the Apache 2 license, which is compatable with this project's license which is GNU GPLv3. For more information see: https://www.apache.org/licenses/GPL-compatibility.html
+
+detect.py and detectbest.py contain code snippits from http://pyimagesearch.com which is licensed under the MIT license, thus compatable with the GNU GPLv3. For more information see: https://en.m.wikipedia.org/wiki/MIT_License
