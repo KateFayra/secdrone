@@ -2,11 +2,11 @@
 
 For my senior thesis for my degree of Bachelor of Science (B.S.) in Computer Science from the University of Illinois at Urbana-Champaign, I designed and implemented an autonomous unmanned aerial vehicle which can patrol an area and identify humans.
 
-You can view my thesis paper here: http://njlochner.com/thesis.html
+You can view my thesis paper here: https://nikkifayra.com/thesis.html
 
-My thesis paper is also available on this GitHub repository: https://github.com/njlochner/secdrone/blob/master/Autonomous%20Surveillance%20and%20Security%20Drone.pdf
+My thesis paper is also available on this GitHub repository: https://github.com/nikkifayra/secdrone/blob/master/Autonomous%20Surveillance%20and%20Security%20Drone.pdf
 
-<a href="http://njlochner.com/thesis.html"><img src="http://njlochner.com/drone.png" width="400" /></a>
+<a href="https://nikkifayra.com/thesis.html"><img src="https://nikkifayra.com/drone.png" width="400" /></a>
 
 ### Overview
 
@@ -34,7 +34,7 @@ detect.py and detectbest.py contain code snippits from Adrian Rosebrock at http:
 
 #### Thesis Paper
 
-All original materials created by the author of this paper are Copyright ©2016 Nicholas Lochner, All Rights Reserved, except for images which depict copyrighted and/or trademarked third-party software or materials which are used under the fair use exception of the US Copyright Act of 1979.
+All original materials created by the author of this paper are Copyright ©2016 Nikki Fayra, All Rights Reserved, except for images which depict copyrighted and/or trademarked third-party software or materials which are used under the fair use exception of the US Copyright Act of 1979.
 
 Redistribution of any source code part contained in the thesis paper is licensed under the GNU GPL v3 and is subject to the terms and conditions of the GNU General Public License Version 3. A copy can be obtained here: http://www.gnu.org/licenses/gpl-3.0.en.html
 
